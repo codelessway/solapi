@@ -10,7 +10,8 @@ app.get('/data', (req, res) => {
 
 app.post('/payload', (req, res) => {
   console.log(req.body);
-  res.send(res.body);
+  var body =req.body;
+  res.send(body);
 });
 
 app.listen(port, () => {
