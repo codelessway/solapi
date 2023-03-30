@@ -10,7 +10,7 @@ app.get('/data', (req, res) => {
 
 app.post('/payload', (req, res) => {
   console.log(req.body);
-  res.send('Payload received');
+  res.send(res.body);
 });
 
 app.listen(port, () => {
@@ -44,6 +44,6 @@ messageService.send({
     // disableSms: true,
   }
 }).then((res)=>{
-console.log(res);
+return res;
 });
 }
