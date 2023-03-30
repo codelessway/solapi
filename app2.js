@@ -11,7 +11,8 @@ app.get('/data', (req, res) => {
 app.post('/payload', (req, res) => {
   console.log(req.body);
   var body =req.body;
-  res.send(body);
+  //res.send(body);
+  res.json(body);
 });
 
 app.listen(port, () => {
