@@ -8,6 +8,11 @@ app.get('/data', (req, res) => {
   res.send('Hello World!')
 })
 
+app.post('/payload', (req, res) => {
+  console.log(req.body);
+  res.send('Payload received');
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
