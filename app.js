@@ -1,23 +1,15 @@
 const { SolapiMessageService } = require('solapi');
 const express = require('express');
-const bodyParser = require('body-parser');
-
-//for ss
-const puppeteer = require('puppeteer');
-const fs = require('fs');
-
+const {chromium} = require("playwright");
+const url = require("url");
 
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000;
+app.use(express.json());
 
-app.use(bodyParser.json());
-
-// Serve the contents of the "images" directory as static files
-app.use('/images', express.static('images'));
-
-app.get('/data', (req, res) => {
-    console.log("inside /data route");
-  res.send('Hello World!')
+app.get('/', (req, res) => {
+    console.log("solapi app is running");
+  res.send('solapi app is running');
 })
 
  app.post('/sendKakaoFriendTalk', async (req, res) => {
@@ -35,18 +27,9 @@ app.get('/data', (req, res) => {
   // const templateId1 = "KA01TP230315073806460ao9PScCLNWu";
 
 
-  let  response =  await sendMessage(to,from,pfId,templateId);
-
-  res.json(response);
+  let  response =  await sendMessage(to,from,pfId,templateId).then((r)=>{  console.log("message sent");  res.json(r);  }).catch((e)=>{ res.json(e); });;
+ 
 });
-
-
-
-//start server
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
-
 
 
 async function sendMessage(to,from,pfId,templateId){
@@ -76,3 +59,43 @@ return await messageService.send({
 });
 
 }
+
+
+app.post("/takeScreenshot", async (req, res) => {
+  const {urlString,width, height} = req.body;
+
+  if (!urlString || !width || !height) {
+    return res.status(400).json({message: "Missing parameters"});
+  }
+
+
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setViewportSize({width, height});
+  await page.goto(urlString);
+  // Wait for the page to finish loading
+  await page.waitForLoadState('networkidle0');
+   // Wait an additional 10 seconds
+   //await new Promise(resolve => setTimeout(resolve, 10000));
+
+  const screenshot = await page.screenshot();
+  await browser.close();
+
+  const {hostname} = url.parse(urlString);
+  const fileName = `${hostname}-screenshot-${Date.now()}.png`;
+  res.setHeader("Content-Type", "image/png");
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  
+  res.json({
+    fileName,
+    screenshot: screenshot
+  });
+  
+  console.log(screenshot);
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});
